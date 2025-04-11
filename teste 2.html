@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Pipeline Profissional</title>
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+  <style>
+.lupa-busca-pedido {
+  color: #007bff;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: transform 0.2s ease;
+}
+
+.lupa-busca-pedido:hover {
+  transform: scale(1.2);
+}
+
+.observacao-container {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.observacao-header {
+  cursor: pointer;
+  color: #d35400;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.seta-icon {
+  transition: transform 0.3s ease;
+}
+
+.observacao-detalhes {
+  margin-top: 6px;
+  display: none;
+  background: #fef6e4;
+  padding: 8px;
+  border-radius: 6px;
+  color: #333;
+}
+
+#btnTopo {
+  display: none;
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 999;
+  width: 50px;
+  height: 50px;
+  background-color: var(--empresa-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: background 0.3s ease, transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#btnTopo:hover {
+  background-color: var(--copy-btn-hover);
+  transform: translateY(-3px);
+}
+    :root {
+      /* Cores da empresa e ícones */
+      --empresa-color: #001932; /* Azul escuro */
+      --icone-color: #f96f00;
+      --bg-light: #f4f7fb;
+      --bg-white: #fff;
+      --bg-hover: #e9f5ff;
+      --bg-dragover: #e2f0ff;
+      --border-color: #dde2e6;
+      --text-color: #495057;
+      --text-dark: #212529;
+      --modal-overlay: rgba(0, 0, 0, 0.8);
+      --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+      --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+      --border-radius-sm: 0.25rem;
+      --border-radius-md: 0.375rem;
+      --border-radius-lg: 0.5rem;
+      --transition: all 0.2s ease-in-out;
+      --copy-btn-hover: #001332;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg-light);
+      margin: 0;
+      padding-top: 100px; /* Espaço para a barra fixa */
+      color: var(--text-dark);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: var(--empresa-color);
+      font-weight: 600;
+    }
+    /* Barra de Pesquisa e Botões fixos */
+    #searchContainer {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      width: 100%;
+      background: var(--bg-white);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      z-index: 1000;
+    }
+    #searchInput {
+      flex: 1;
+      padding: 10px 10px 10px 40px;
+      border-radius: var(--border-radius-md);
+      border: 1px solid var(--border-color);
+      font-size: 15px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23f96f00' viewBox='0 0 512 512'%3E%3Cpath d='M505 442.7L405.3 343c28.4-34.9 45.7-79.3 45.7-127C451 96.5 354.5 0 225.5 0S0 96.5 0 216s96.5 216 216 216c47.7 0 92.1-17.3 127-45.7l99.7 99.7c4.5 4.5 10.6 6.8 16.7 6.8s12.2-2.3 16.7-6.8c9-9 9-23.6 0-32.6zM216 360c-79.5 0-144-64.5-144-144S136.5 72 216 72s144 64.5 144 144-64.5 144-144 144z'/%3E%3C/svg%3E") no-repeat 12px center;
+      background-size: 18px 18px;
+      transition: var(--transition);
+    }
+    #searchInput:focus {
+      outline: none;
+      border-color: var(--icone-color);
+      box-shadow: 0 0 0 3px rgba(249,111,0,0.2);
+    }
+    #reloadBtn, #updatePageBtn {
+      padding: 10px 15px;
+      border: none;
+      border-radius: var(--border-radius-md);
+      background: var(--empresa-color);
+      color: #fff;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      text-decoration: none;
+    }
+    #reloadBtn:hover, #updatePageBtn:hover {
+      background: #001332;
+      transform: translateY(-1px);
+    }
+    /* Campo de Informação da Pesquisa */
+    #searchInfo {
+      margin-left: auto;
+      font-weight: 500;
+      color: var(--empresa-color);
+      font-size: 0.9em;
+    }
+    /* Botões de Copiar com estilo aprimorado (azul escuro) */
+    .copy-btn {
+      background: var(--empresa-color);
+      border: none;
+      border-radius: var(--border-radius-sm);
+      color: #fff;
+      padding: 4px 8px;
+      font-size: 12px;
+      margin-left: 10px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .copy-btn:hover {
+      background: var(--copy-btn-hover);
+    }
+    /* Notificação de cópia */
+    #copyNotification {
+  position: fixed;
+  top: 9%; /* mais centralizado pra não colidir com barras do Google Sites */
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #28a745;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  z-index: 999999;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+#editarBtn {
+  background-color: #fe5000; 
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#editarBtn:hover {
+  background-color: #d84300;
+  transform: scale(1.05);
+}
+
+#editarBtn:active {
+  transform: scale(0.98);
+}
+
+    /* Container principal e grupos */
+    .main-content {
+      padding: 20px;
+    }
+    .grupo {
+      margin-bottom: 40px;
+    }
+    .grupo h2 {
+      font-size: 1.5em;
+      font-weight: 600;
+      margin: 20px 0 15px;
+      color: var(--empresa-color);
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border-color);
+    }
+    /* Pipelines com scroll horizontal */
+    .pipelines {
+      display: flex;
+      gap: 25px;
+      overflow-x: auto;
+      padding-bottom: 15px;
+      height: 750px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--empresa-color) var(--bg-light);
+    }
+    .pipelines::-webkit-scrollbar {
+      height: 8px;
+    }
+    .pipelines::-webkit-scrollbar-track {
+      background: var(--bg-light);
+    }
+    .pipelines::-webkit-scrollbar-thumb {
+      background-color: var(--empresa-color);
+      border-radius: 10px;
+    }
+    /* Pipeline */
+    .pipeline {
+      background: var(--bg-white);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--shadow-sm);
+      width: 320px;
+      min-height: 700px;
+      padding: 0;
+      flex-shrink: 0;
+      overflow-y: auto;
+      transition: var(--transition);
+      border: 1px solid var(--border-color);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .pipeline:hover {
+      box-shadow: var(--shadow-md);
+    }
+    .pipeline h3 {
+      margin: 0;
+      font-size: 1.1em;
+      color: #fff;
+      padding: 12px 15px;
+      border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 500;
+    }
+    /* Corpo dos pipelines */
+    .pipeline-body {
+      padding: 15px;
+      flex: 1;
+    }
+    .item {
+      background: #f8f9fa;
+      margin: 12px 0;
+      padding: 12px 15px;
+      border-radius: var(--border-radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+    }
+    .item:hover {
+      background: var(--bg-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .item p {
+      margin: 6px 0;
+      font-size: 0.9em;
+      line-height: 1.4;
+      color: var(--text-color);
+    }
+   .pipeline-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg-white);
+  font-size: 0.75em;
+  text-align: center;
+  padding: 8px 10px;
+  color: #6c757d;
+  border-top: 1px solid var(--border-color);
+  z-index: 1;
+}
+
+    /* Indicador de carregamento interno */
+    #loadingIndicator {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--empresa-color);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: var(--border-radius-md);
+      font-size: 0.9em;
+      display: none;
+      z-index: 11000;
+      box-shadow: var(--shadow-md);
+    }
+    /* Tela de carregamento completa */
+    #fullLoading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      backdrop-filter: blur(5px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 12000;
+    }
+    .spinner-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    #fullLoading i {
+      font-size: 3em;
+      color: #ff6f00;
+      animation: spin 1.2s linear infinite, glow 1.5s ease-in-out infinite alternate;
+    }
+    #fullLoading span {
+      margin-top: 15px;
+      color: #ffffff;
+      font-size: 1.4em;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes glow {
+      from { text-shadow: 0 0 5px #ff6f00, 0 0 10px #ffa726; }
+      to { text-shadow: 0 0 15px #ffa726, 0 0 30px #ffa726; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    /* Modal Profissional */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: var(--modal-overlay);
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .modal-content {
+      background: var(--bg-white);
+      border-radius: var(--border-radius-lg);
+      width: 100%;
+      top: 60px;
+      max-width: 1300px;
+      max-height: 95vh;
+      overflow-y: auto;
+      padding-bottom: 20px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      animation: fadeIn 0.3s ease;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      padding: 18px 25px;
+      margin-bottom: 20px;
+      /* A cor de fundo será definida dinamicamente conforme a pipeline */
+      border-radius: 0;
+    }
+    .modal-header h3 {
+      margin: 0;
+      font-size: 1.5em;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 500;
+    }
+    .modal-header button {
+      background: transparent;
+      border: none;
+      font-size: 1.5em;
+      color: #fff;
+      cursor: pointer;
+      transition: var(--transition);
+      padding: 5px;
+      border-radius: 50%;
+    }
+    .modal-header button:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    .modal-header button:hover i {
+      transform: rotate(180deg);
+    }
+    .modal-body {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+      padding: 0 25px;
+    }
+    .modal-section {
+      padding: 18px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-md);
+      background: #fafafa;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 10px;
+    }
+    .modal-section h4 {
+      margin-top: 0;
+      color: var(--empresa-color);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+      font-size: 1.2em;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal-section p {
+      margin: 10px 0;
+      font-size: 1em;
+      color: var(--text-color);
+    }
+    .modal-section p strong {
+      color: var(--empresa-color);
+      font-weight: 500;
+      min-width: 150px;
+      display: inline-block;
+    }
+    .modal-section a {
+      color: #28a745;
+      text-decoration: none;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+    .modal-section a:hover {
+      text-decoration: underline;
+    }
+    .modal-section a[href="#"] {
+      color: var(--text-color);
+      cursor: not-allowed;
+    }
+    /* Dados de modificação no modal – agora visíveis */
+    #dadosModificacao {
+      display: block;
+    }
+    #dadosModificacao p {
+      margin: 5px 0;
+      font-size: 0.9em;
+      color: var(--text-color);
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 15px;
+      border-top: 1px solid var(--border-color);
+      padding: 15px 25px 0;
+      margin-top: 15px;
+    }
+    /* Área de visualização de detalhes */
+    #modalVisualizacao {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+    .modal-detail-grid {
+      display: flex;
+      gap: 25px;
+      flex-wrap: wrap;
+    }
+    .detail-column {
+      flex: 1;
+      min-width: 300px;
+    }
+    #dadosPipeline {
+      display: flex;
+      gap: 25px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+    #consultorFoto {
+      width: 120px;
+      height: 120px;
+      border-radius: var(--border-radius-md);
+      object-fit: cover;
+      box-shadow: var(--shadow-sm);
+    }
+    #infoConsultor {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0;
+      flex: 1;
+    }
+    #infoConsultor p {
+      margin: 0;
+      padding: 0;
+      line-height: 1.5;
+    }
+    /* Botão de copiar dados */
+    #copyDataBtn {
+      width: 100%;
+      padding: 10px 15px;
+      background: var(--empresa-color);
+      color: #fff;
+      border: none;
+      border-radius: var(--border-radius-md);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 500;
+      margin: 1% 0;
+    }
+    #copyDataBtn:hover {
+      background: #28a745;
+      transform: translateY(-1px);
+    }
+    /* Estilos para inputs e botões na edição */
+    #modalDetalhes label {
+      font-weight: 600;
+      display: block;
+      margin: 15px 0 8px;
+      color: var(--empresa-color);
+    }
+    #modalDetalhes input, #modalDetalhes select, #modalDetalhes textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: var(--border-radius-md);
+      border: 1px solid var(--border-color);
+      font-size: 15px;
+      transition: var(--transition);
+    }
+    #modalDetalhes input:focus, #modalDetalhes select:focus, #modalDetalhes textarea:focus {
+      outline: none;
+      border-color: var(--icone-color);
+      box-shadow: 0 0 0 3px rgba(249,111,0,0.2);
+    }
+    #modalDetalhes select {
+      appearance: none;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23f96f00' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat calc(100% - 12px) center;
+      background-size: 16px 12px;
+    }
+    #salvarBtn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      background: #fa5000;
+      color: var(--bg-white);
+      border: none;
+      border-radius: var(--border-radius-md);
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    #salvarBtn:hover {
+      background: #d84300;
+      transform: translateY(-1px);
+    }
+    #cancelarBtn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px;
+      background: var(--bg-white);
+      color: #fa5000;
+      border: 1px solid #fa5000;
+      border-radius: var(--border-radius-md);
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    #cancelarBtn:hover {
+      background: #f1f5f9;
+      transform: translateY(-1px);
+    }
+    .file-input-container {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+    .file-input-container input[type="file"] {
+      opacity: 0;
+      width: 100%;
+      height: 45px;
+      position: absolute;
+      left: 0;
+      top: 0;
+      cursor: pointer;
+    }
+    .file-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 15px;
+      background: #f8f9fa;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-md);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .file-label:hover {
+      background: #e9ecef;
+    }
+    .file-label span {
+      color: var(--text-color);
+      font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .file-label i {
+      margin-left: 10px;
+      color: var(--icone-color);
+    }
+    /* Mensagens de erro */
+    .error-msg {
+      color: var(--icone-color);
+      font-size: 0.85em;
+      margin-top: 5px;
+      font-weight: 500;
+    }
+    /* Badges para status */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: var(--border-radius-sm);
+      font-size: 0.8em;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-aguardando {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    .badge-processando {
+      background-color: #cce5ff;
+      color: #004085;
+    }
+    .badge-finalizado {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .badge-erro {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    .badge-outros {
+      background-color: #e2e3e5;
+      color: #383d41;
+    }
+    /* Ícones customizados */
+    .fas.fa-user { color: #ff9800; }
+    .fas.fa-id-card { color: #f57c00; }
+    .fas.fa-user-tie { color: #e65100; }
+    .fas.fa-hashtag { color: #ffcc80; }
+    .fas.fa-globe { color: #ffab40; }
+    .fas.fa-comment { color: #ff6d00; }
+    #fecharModal {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 1.5rem;
+      color: #ff6b00;
+      transition: transform 0.3s ease, color 0.3s ease;
+      z-index: 10;
+    }
+    #fecharModal i {
+      transition: transform 0.3s ease;
+    }
+    #fecharModal:hover {
+      color: #ff4500;
+      transform: scale(1.2);
+    }
+    #fecharModal:hover i {
+      transform: rotate(180deg);
+    }
+.arquivos-container {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  justify-content: space-between;
+}
+
+.arquivo-bloco {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  width: 120px;
+  text-align: center;
+  transition: all 0.3s ease;
+  color: #28a745; /* Verde quando disponível */
+}
+
+.arquivo-bloco i {
+  font-size: 28px;
+  margin-bottom: 5px;
+}
+
+.arquivo-bloco.disabled {
+  color: #ccc; /* Cinza claro quando indisponível */
+  cursor: default;
+  pointer-events: none;
+}
+
+.arquivo-bloco:not(.disabled):hover {
+  background-color: #f3fff3;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+.card-arquivos {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 18px;
+  justify-content: flex-start;
+  border-top: 1px solid #eee;
+  padding-top: 6px;
+}
+
+.card-arquivos i {
+  transition: transform 0.2s ease;
+}
+
+.card-arquivos i:hover {
+  transform: scale(1.2);
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- Notificação de cópia -->
+  <div id="copyNotification">Copiado!</div>
+  
+  <!-- Tela de carregamento completa -->
+  <div id="fullLoading">
+    <div class="spinner-container">
+      <i class="fas fa-spinner"></i>
+      <span>Carregando...</span>
+    </div>
+  </div>
+
+  <!-- Barra fixa de pesquisa e botões -->
+  <div id="searchContainer">
+    <input type="text" id="searchInput" placeholder="Pesquisar CPF/CNPJ, Pedido ou Maquininha ID">
+    <button id="reloadBtn"><i class="fas fa-sync-alt"></i> Recarregar</button>
+    <a href="https://soollarbank.fivegestor.com.br/contrato/proposta?filtros%5Bcreated_at%5D%5Bvalor%5D=&filtros%5Bcpf_cnpj%5D%5Bcondicao%5D=&filtros%5Bcpf_cnpj%5D%5Bvalor%5D=&filtros%5Bcliente_id%5D%5Bvalor%5D=&filtros%5Bcarta_id%5D%5Bvalor%5D=&filtros%5Btipo_proposta_id%5D%5Bvalor%5D=&filtros%5Bcarta_plano_id%5D%5Bvalor%5D=&filtros%5Bid%5D%5Bvalor%5D=&filtros%5Bstatus_id%5D%5Bvalor%5D=&filtros%5Bstatus_id%5D%5Bvalor%5D=96&filtros%5Bname%5D%5Bcondicao%5D=&filtros%5Bname%5D%5Bvalor%5D=&filtros%5Bnome_razao%5D%5Bcondicao%5D=&filtros%5Bnome_razao%5D%5Bvalor%5D=&filtros%5Bcpf_cnpj%5D%5Btabela%5D=clientes&filtros%5Bid%5D%5Btabela%5D=tipo_leads&filtros%5Bname%5D%5Btabela%5D=users&filtros%5Bnome_razao%5D%5Btabela%5D=clientes" 
+       id="updatePageBtn" target="_blank" rel="noopener noreferrer">
+       <i class="fas fa-file"></i> Atualizar Propostas
+    </a>
+    <span id="searchInfo"></span>
+  </div>
+  
+  <!-- Indicador de carregamento interno -->
+  <div id="loadingIndicator">Carregando...</div>
+  
+  <div class="main-content" id="mainContent">
+    <div id="pipelinesContainer"></div>
+  </div>
+  
+  <!-- Modal Profissional para Detalhes do Envio -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <!-- Cabeçalho -->
+      <div class="modal-header" id="modalHeader">
+        <h3 id="modalTitulo"><i class="fas fa-info-circle"></i> Detalhes do Envio</h3>
+        <button id="fecharModal"><i class="fas fa-times"></i></button>
+      </div>
+      <!-- Corpo do Modal -->
+      <div class="modal-body">
+        <!-- Área de Visualização -->
+        <div id="modalVisualizacao">
+          <div class="modal-detail-grid">
+            <!-- Coluna 1: Dados da Pipeline -->
+            <div class="detail-column">
+              <div class="modal-section" id="dadosPipeline">
+                <h4><i class="fas fa-user-tie"></i> Dados da Pipeline</h4>
+                <div id="consultorArea" style="display: flex; gap: 20px; align-items: center;">
+                  <img id="consultorFoto" src="https://via.placeholder.com/120" alt="Foto do Consultor">
+                  <div id="infoConsultor">
+                    <p><strong>Consultor:</strong> <span id="consultorDetalhe"></span></p>
+                    <!-- Status G com cor dinâmica -->
+                    <p><strong>Status G:</strong> <span id="statusGDetalhe" class="status-badge"></span></p>
+                    <p><strong>Modelo:</strong> <span id="modeloDetalhe"></span></p>
+                    <p><strong>Origem Lead:</strong> <span id="origemLeadDetalhe"></span></p>
+                    <p><strong>Observação Geral:</strong> <span id="obsGeralDetalhe"></span></p>
+                  </div>
+                </div>
+              </div>
+              <button id="copyDataBtn"><i class="fas fa-copy"></i> Copiar Dados</button>
+            </div>
+            <!-- Coluna 2: Informações do Cliente -->
+            <div class="detail-column">
+              <div class="modal-section" id="infoCliente">
+                <h4><i class="fas fa-user"></i> Informações do Cliente</h4>
+                <p><strong>Cliente:</strong> <span id="clienteDetalhe"></span></p>
+                <p>
+                  <strong>CPF/CNPJ:</strong> 
+                  <span id="cpfDetalhe"></span> 
+                  <button id="copyCnpjBtn" class="copy-btn">Copiar CNPJ</button>
+                </p>
+                <p>
+  <strong>Pedido:</strong> <span id="pedidoDetalhe"></span>
+  <i class="fas fa-search lupa-busca-pedido" title="Buscar este pedido"></i>
+</p>
+                <p>
+                  <strong>Maquininha ID:</strong> 
+                  <span id="maquininhaDetalhe"></span> 
+                  <button id="copyMaquininhaBtn" class="copy-btn">Copiar últimos 15 dígitos</button>
+                </p>
+                <p><strong>CHIP:</strong> <span id="chipDetalhe"></span></p>
+                <p><strong>Entrada:</strong> <span id="entradaDetalhe"></span></p>
+                <p><strong>Data Envio/Entrega:</strong> <span id="dataEnvioDetalhe"></span></p>
+              </div>
+            </div>
+          </div>
+          <!-- Seção: Arquivos -->
+          <div class="modal-section" id="arquivosDetalhe">
+            <h4><i class="fas fa-file-alt"></i> Arquivos</h4>
+            <div class="arquivos-container">
+  <div class="arquivo-bloco disabled" id="arquivoMapa">
+    <i class="fas fa-map"></i>
+    <span>Mapa de separação</span>
+  </div>
+  <div class="arquivo-bloco disabled" id="arquivoDanfe">
+    <i class="fas fa-file-pdf"></i>
+    <span>DANFe</span>
+  </div>
+  <div class="arquivo-bloco disabled" id="arquivoCarta">
+    <i class="fas fa-file-word"></i>
+    <span>Carta de correção</span>
+  </div>
+  <div class="arquivo-bloco disabled" id="arquivoEtiqueta">
+    <i class="fas fa-tag"></i>
+    <span>Etiqueta de Envio</span>
+  </div>
+</div>
+
+          </div>
+          <!-- Seção: Dados de Modificação – agora visível -->
+          <div class="modal-section" id="dadosModificacao">
+            <h4><i class="fas fa-history"></i> Última Modificação</h4>
+            <p><strong>Usuário:</strong> <span id="usuarioModDetalhe"></span></p>
+            <p><strong>Data:</strong> <span id="dataModDetalhe"></span></p>
+          </div>
+        </div>
+        <!-- Área de Edição (inicialmente oculta) -->
+        <div id="modalDetalhes" style="display: none;"></div>
+      </div>
+      <!-- Rodapé com botão de edição -->
+      <div class="modal-footer">
+        <button id="editarBtn"><i class="fas fa-edit"></i> Editar</button>
+      </div>
+    </div>
+  </div>
+<button id="btnTopo" title="Voltar ao topo">
+  <i class="fas fa-arrow-up"></i>
+</button>
+
+  
+  <script>
+    const apiUrl = "https://script.google.com/macros/s/AKfycbwo3hWrdroNpCtjii_IZnGf-Os2_KYcg0BQD5ux-GsK9FCA38yNMNUtxqU6AX43UnB_/exec";
+    let data; // Dados carregados da API
+    let currentItem; // Item atualmente aberto no modal
+
+    // Paleta de cores para pipelines
+    const pipelineColors = [
+      "#2c3e50", "#8e44ad", "#16a085", "#d35400", "#27ae60", "#2980b9", "#7f8c8d"
+    ];
+
+    // Funções de carregamento
+    function showFullLoading() {
+      document.getElementById("fullLoading").style.display = "flex";
+    }
+    function hideFullLoading() {
+      document.getElementById("fullLoading").style.display = "none";
+    }
+
+    // Copiar texto para a área de transferência
+    function copyToClipboard(text) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+          document.execCommand("copy");
+      } catch (err) {
+          console.error("Erro ao copiar texto: ", err);
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // Notificação de cópia com animação
+    function showCopyNotification(message) {
+      const notif = document.getElementById("copyNotification");
+      notif.textContent = message || "Copiado!";
+      notif.style.display = "block";
+      void notif.offsetWidth;
+      notif.style.opacity = "1";
+      setTimeout(() => {
+        notif.style.opacity = "0";
+        setTimeout(() => { notif.style.display = "none"; }, 500);
+      }, 2000);
+    }
+
+    // Formatação de data
+    function formatDate(dateInput) {
+      if (!dateInput) return "Não informado";
+      const d = dateInput instanceof Date ? dateInput : new Date(dateInput);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const seconds = String(d.getSeconds()).padStart(2, '0');
+      return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+    }
+
+    // Atualiza os campos de modificação no item
+    function atualizarCamposModificacao(item) {
+      item["Usuário que modificou"] = "Rubens Gabriel";
+      item["Data de modificação"] = new Date().toISOString();
+      const statusEnvioEntrega = ["Envio Realizado", "Em posse do Márcio", "Cliente Buscou", "Entregue ao Vendedor"];
+      if (statusEnvioEntrega.includes(item["Status G"])) {
+        item["Data Envio/Entrega"] = new Date().toISOString();
+      }
+    }
+
+    async function buscarDados() {
+      try {
+        const response = await fetch(apiUrl);
+        const dados = await response.json();
+        return dados;
+      } catch (error) {
+        console.error("Erro ao buscar dados:", error);
+      }
+    }
+
+    // Renderiza pipelines com filtro de pesquisa
+    function renderizarPipelines(dadosRender) {
+      const container = document.getElementById("pipelinesContainer");
+      container.innerHTML = "";
+      const query = document.getElementById("searchInput").value.trim();
+      let dadosProcessados = dadosRender;
+      if(query !== "") {
+        const normalizedQuery = query.replace(/\D/g, '');
+        dadosProcessados = dadosRender.filter(item => {
+          const cpfCnpj = (item["CPF/CNPJ"] || "").replace(/\D/g, '');
+          const pedido = (item["Pedido"] ? item["Pedido"].toString() : "").replace(/\D/g, '');
+          const maquininha = (item["Maquininha ID"] ? item["Maquininha ID"].toString() : "").replace(/\D/g, '');
+          return cpfCnpj.includes(normalizedQuery) || pedido.includes(normalizedQuery) || maquininha.includes(normalizedQuery);
+        });
+      }
+      
+      const searchInfo = document.getElementById("searchInfo");
+      if(query !== "") {
+        let groupCounts = {};
+        dadosProcessados.forEach(item => {
+          let status = item["Status G"] || "Sem status";
+          groupCounts[status] = (groupCounts[status] || 0) + 1;
+        });
+        let infoText = `Encontrado ${dadosProcessados.length} itens - `;
+        for(const [status, count] of Object.entries(groupCounts)){
+          infoText += `${status}: ${count}; `;
+        }
+        searchInfo.textContent = infoText;
+      } else {
+        searchInfo.textContent = "";
+      }
+
+      // Organização por status
+      const ordemPrincipais = [
+        "Processando",
+        "Aguardando Envio",
+        "Aguardando Mapa",
+        "Aguardando DANFe",
+        "Embalagem",
+        "Envio Realizado"
+
+      ];
+      const ordemDemaisProcessos = [
+        "Em Posse Do Marcio",
+        "Falha na Entrega",
+        "Cliente Buscou",
+        "Entregue ao Vendedor",
+        "Com Defeito"
+      ];
+      const ordemZyraIA = [
+        "Zyra Etiqueta",
+        "Conferir Etiqueta Zyra"
+      ];
+      const pipelines = {};
+      dadosProcessados.forEach(item => {
+        const statusG = item["Status G"]?.trim();
+        if (statusG) {
+          const statusNorm = statusG.toLowerCase();
+          if (!pipelines[statusNorm]) pipelines[statusNorm] = [];
+          pipelines[statusNorm].push(item);
+        }
+      });
+      
+      function renderizarGrupo(lista, titulo) {
+        const grupoDiv = document.createElement("div");
+        grupoDiv.classList.add("grupo");
+        const tituloDiv = document.createElement("h2");
+        tituloDiv.textContent = titulo;
+        grupoDiv.appendChild(tituloDiv);
+        const pipelinesDiv = document.createElement("div");
+        pipelinesDiv.classList.add("pipelines");
+        lista.forEach((statusG, index) => {
+          const statusNorm = statusG.toLowerCase();
+          const pipelineDiv = document.createElement("div");
+          pipelineDiv.classList.add("pipeline");
+          pipelineDiv.setAttribute("data-status", statusG);
+          const corPipeline = pipelineColors[index % pipelineColors.length];
+          pipelineDiv.setAttribute("data-color", corPipeline);
+          pipelineDiv.addEventListener("dragover", function(e) {
+            e.preventDefault();
+            pipelineDiv.classList.add("dragover");
+          });
+          pipelineDiv.addEventListener("dragleave", function() {
+            pipelineDiv.classList.remove("dragover");
+          });
+          pipelineDiv.addEventListener("drop", function(e) {
+            e.preventDefault();
+            pipelineDiv.classList.remove("dragover");
+            const itemId = e.dataTransfer.getData("text/plain");
+            const draggedItem = document.querySelector(`[data-item-id='${itemId}']`);
+            if (draggedItem) {
+              const novoStatus = pipelineDiv.getAttribute("data-status");
+              const id = draggedItem.getAttribute("data-id");
+              const itemObj = data.find(item => item["Pedido"] == id);
+              if (itemObj) {
+                const requiredStatuses = ["Embalagem", "Envio Realizado", "Devolução", "Em Posse do Márcio", "Cliente Buscou", "Entregue ao Vendedor"];
+                if(requiredStatuses.includes(novoStatus)) {
+                  const maquininhaValue = (itemObj["Maquininha ID"] || "").replace(/\D/g, '');
+                  if(maquininhaValue.length !== 24) {
+                    alert(`Maquininha ID inválido para o status "${novoStatus}". Deve ter exatamente 24 dígitos.`);
+                    return;
+                  }
+                }
+                itemObj["Status G"] = novoStatus;
+                atualizarCamposModificacao(itemObj);
+                atualizarItem(itemObj);
+                aplicarFiltro();
+              }
+            }
+          });
+          const count = pipelines[statusNorm] ? pipelines[statusNorm].length : 0;
+          const tituloPipeline = document.createElement("h3");
+          tituloPipeline.innerHTML = `<i class="fas fa-folder"></i> ${statusG} <span style="font-weight:300;">(${count})</span>`;
+          tituloPipeline.style.backgroundColor = corPipeline;
+          pipelineDiv.appendChild(tituloPipeline);
+          
+          const pipelineBody = document.createElement("div");
+          pipelineBody.classList.add("pipeline-body");
+          
+          if (pipelines[statusNorm]) {
+            pipelines[statusNorm].forEach(item => {const itemDiv = document.createElement("div");
+itemDiv.classList.add("item");
+itemDiv.setAttribute("draggable", "true");
+itemDiv.setAttribute("data-item-id", item["Pedido"]);
+itemDiv.setAttribute("data-id", item["Pedido"]);
+
+itemDiv.innerHTML = `
+  <p><i class="fas fa-user"></i> <strong></strong> ${item["Cliente"] || 'Não informado'}</p>
+  <p><i class="fas fa-id-card"></i> <strong></strong> ${item["CPF/CNPJ"] || 'Não informado'}</p>
+  <p><i class="fas fa-user-tie"></i> <strong></strong> ${item["Consultor"] || 'Não informado'}</p>
+  <p><i class="fas fa-hashtag"></i> <strong></strong> ${item["Pedido"] || 'Não informado'}</p>
+  <p><i class="fas fa-globe"></i> <strong></strong> ${item["Origem lead"] || 'Não informado'}</p>
+
+  <div class="observacao-container" onclick="event.stopPropagation(); toggleObservacao(this)">
+    <div class="observacao-header">
+      <i class="fas fa-comment-dots"></i> Observações
+      <i class="fas fa-chevron-down seta-icon"></i>
+    </div>
+    <div class="observacao-detalhes" style="display: none;">
+      <p>${item["Observação Geral"] || 'Sem observação'}</p>
+    </div>
+  </div>
+
+ <div class="card-arquivos">
+  <i class="fas fa-map" title="Mapa de Separação" style="color: ${item["Mapa de separação"] ? '#28a745' : '#ccc'};"></i>
+  <i class="fas fa-file-pdf" title="DANFe" style="color: ${item["DANFe"] ? '#28a745' : '#ccc'};"></i>
+  <i class="fas fa-file-word" title="Carta de Correção" style="color: ${item["Carta de correção"] ? '#28a745' : '#ccc'};"></i>
+  <i class="fas fa-tag" title="Etiqueta de Envio" style="color: ${item["Etiqueta de Envio"] ? '#28a745' : '#ccc'};"></i>
+</div>
+
+`;
+
+// Eventos de clique e drag
+itemDiv.addEventListener("click", function () {
+  const pipelineColor = this.closest('.pipeline').getAttribute('data-color');
+  abrirModal(item, pipelineColor);
+});
+
+itemDiv.addEventListener("dragstart", function (e) {
+  e.dataTransfer.setData("text/plain", item["Pedido"]);
+});
+
+pipelineBody.appendChild(itemDiv);
+
+;
+            });
+          }
+          
+          pipelineDiv.appendChild(pipelineBody);
+          // Rodapé do pipeline: exibe o último usuário e data de modificação dos itens
+          const footerDiv = document.createElement("div");
+          footerDiv.classList.add("pipeline-footer");
+          let latestItem = null;
+          let maxData = null;
+          if(pipelines[statusNorm] && pipelines[statusNorm].length > 0) {
+            pipelines[statusNorm].forEach(item => {
+              if(item["Data de modificação"]) {
+                let d = new Date(item["Data de modificação"]);
+                if(!maxData || d > maxData) {
+                  maxData = d;
+                  latestItem = item;
+                }
+              }
+            });
+          }
+          if(latestItem && maxData) {
+            footerDiv.textContent = `Última modificação: ${latestItem["Usuário que modificou"]} - ${formatDate(maxData)}`;
+          } else {
+            footerDiv.textContent = "";
+          }
+          pipelineDiv.appendChild(footerDiv);
+          pipelinesDiv.appendChild(pipelineDiv);
+        });
+        grupoDiv.appendChild(pipelinesDiv);
+        container.appendChild(grupoDiv);
+      }
+	renderizarGrupo(ordemPrincipais, "Classificação: Principais");
+	renderizarGrupo(ordemZyraIA, "Classificação: Zyra IA"); 
+	renderizarGrupo(ordemDemaisProcessos, "Classificação: Demais Processos");
+
+    }
+
+    // Aplica o filtro e renderiza os pipelines
+    function aplicarFiltro() {
+      renderizarPipelines(data);
+    }
+
+    // Converte arquivo para base64
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Atualiza item no back-end
+    async function atualizarItem(item) {
+      document.getElementById("loadingIndicator").style.display = "block";
+      const dadosAtualizados = {
+        cpfCnpj: item["CPF/CNPJ"],
+        pedido: item["Pedido"],
+        statusG: item["Status G"],
+        observacaoGeral: item["Observação Geral"],
+        mapaSeparacaoFile: item["Mapa de separação"] || "",
+        mapaSeparacaoFileName: item["Mapa de separação FileName"] || "",
+        danfeFile: item["DANFe"] || "",
+        danfeFileName: item["DANFe FileName"] || "",
+        cartaFile: item["Carta de correção"] || "",
+        cartaFileName: item["Carta de correção FileName"] || "",
+        etiquetaFile: item["Etiqueta de Envio"] || "",
+        etiquetaFileName: item["Etiqueta de Envio FileName"] || "",
+        maquininha: item["Maquininha ID"],
+        chip: item["CHIP"] || "",
+        usuarioModificou: item["Usuário que modificou"],
+        dataModificacao: item["Data de modificação"],
+        dataEnvioEntrega: item["Data Envio/Entrega"] || ""
+      };
+
+      try {
+        await fetch(apiUrl, {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(dadosAtualizados)
+        });
+        const novosDados = await buscarDados();
+        if (novosDados) {
+          data = novosDados;
+          aplicarFiltro();
+        }
+      } catch (error) {
+        console.error("Erro ao enviar dados:", error);
+        alert("Erro ao enviar dados.");
+      } finally {
+        document.getElementById("loadingIndicator").style.display = "none";
+      }
+    }
+
+function abrirModal(item, pipelineColor) {
+  currentItem = item;
+  document.getElementById("modalTitulo").innerHTML = `<i class="fas fa-info-circle"></i> Detalhes do Envio`;
+
+  // Atualiza a cor do cabeçalho do modal
+  document.getElementById("modalHeader").style.background = pipelineColor;
+
+  // Dados do consultor e status
+  document.getElementById("consultorFoto").src = item["Unidade"] || "https://via.placeholder.com/120";
+  document.getElementById("consultorDetalhe").textContent = item["Consultor"] || "Não informado";
+
+  const statusGDetalhe = document.getElementById("statusGDetalhe");
+  statusGDetalhe.textContent = item["Status G"] || "Não informado";
+  statusGDetalhe.style.backgroundColor = pipelineColor;
+  statusGDetalhe.style.color = "#fff";
+
+  document.getElementById("modeloDetalhe").textContent = item["Carta"] || "Não informado";
+  document.getElementById("origemLeadDetalhe").textContent = item["Origem lead"] || "Não informado";
+  document.getElementById("obsGeralDetalhe").textContent = item["Observação Geral"] || "Não informada";
+
+  document.getElementById("cpfDetalhe").innerHTML = `<a href="https://soollarbank.fivegestor.com.br/cliente/lead?searchs=+${encodeURIComponent(item["CPF/CNPJ"]) }" target="_blank">${item["CPF/CNPJ"] || "Não informado"}</a>`;
+
+  // Preenche o pedido
+  document.getElementById("pedidoDetalhe").textContent = item["Pedido"] || "Não informado";
+const lupa = document.querySelector('.lupa-busca-pedido');
+if (lupa) {
+  lupa.onclick = function (e) {
+    e.stopPropagation();
+
+    const pedido = (item["Pedido"] || "").toString().trim(); // remove espaços
+    const campoBusca = document.getElementById("searchInput"); // seu campo real
+
+    if (campoBusca) {
+      campoBusca.value = pedido;
+
+      // dispara o evento de input pra simular a digitação
+      const inputEvent = new Event("input", { bubbles: true });
+      campoBusca.dispatchEvent(inputEvent);
+
+      fecharModal(); // fecha o modal pra mostrar só o resultado, opcional
+    }
+  };
+}
+
+  
+
+      document.getElementById("clienteDetalhe").innerHTML =
+  item["Cliente"] && item["CPF/CNPJ"]
+    ? `<a href="https://soollarbank.fivegestor.com.br/crm/pipeline/pipelines?searchs=${encodeURIComponent(item["CPF/CNPJ"])}" target="_blank">${item["Cliente"]}</a>`
+    : "Não informado";
+;
+      document.getElementById("maquininhaDetalhe").textContent = item["Maquininha ID"] || "Não informado";
+      // Exibe o campo CHIP
+      document.getElementById("chipDetalhe").textContent = item["CHIP"] || "Não informado";
+      
+      document.getElementById("entradaDetalhe").textContent = item["Entrada"] || "Não informado";
+      document.getElementById("dataEnvioDetalhe").textContent = item["Data Envio/Entrega"] ? formatDate(item["Data Envio/Entrega"]) : "Não informado";
+      
+      // Mapa de separação
+const blocoMapa = document.getElementById("arquivoMapa");
+if (item["Mapa de separação"]) {
+  blocoMapa.classList.remove("disabled");
+  blocoMapa.onclick = () => window.open(item["Mapa de separação"], '_blank');
+} else {
+  blocoMapa.classList.add("disabled");
+  blocoMapa.onclick = null;
+}
+
+// DANFe
+const blocoDanfe = document.getElementById("arquivoDanfe");
+if (item["DANFe"]) {
+  blocoDanfe.classList.remove("disabled");
+  blocoDanfe.onclick = () => window.open(item["DANFe"], '_blank');
+} else {
+  blocoDanfe.classList.add("disabled");
+  blocoDanfe.onclick = null;
+}
+
+// Carta de correção
+const blocoCarta = document.getElementById("arquivoCarta");
+if (item["Carta de correção"]) {
+  blocoCarta.classList.remove("disabled");
+  blocoCarta.onclick = () => window.open(item["Carta de correção"], '_blank');
+} else {
+  blocoCarta.classList.add("disabled");
+  blocoCarta.onclick = null;
+}
+
+// Etiqueta de Envio
+const blocoEtiqueta = document.getElementById("arquivoEtiqueta");
+if (item["Etiqueta de Envio"]) {
+  blocoEtiqueta.classList.remove("disabled");
+  blocoEtiqueta.onclick = () => window.open(item["Etiqueta de Envio"], '_blank');
+} else {
+  blocoEtiqueta.classList.add("disabled");
+  blocoEtiqueta.onclick = null;
+}
+
+      
+      // Atualiza dados de modificação no modal
+      document.getElementById("usuarioModDetalhe").textContent = item["Usuário que modificou"] || "Não informado";
+      document.getElementById("dataModDetalhe").textContent = item["Data de modificação"] ? formatDate(item["Data de modificação"]) : "Não informado";
+      
+      document.getElementById("copyDataBtn").onclick = function() {
+        const dadosParaCopiar = [
+          `CPF/CNPJ: ${item["CPF/CNPJ"] || "Não informado"}`,
+          `Pedido: ${item["Pedido"] || "Não informado"}`,
+          `Maquininha ID: ${item["Maquininha ID"] || "Não informado"}`,
+          `CHIP: ${item["CHIP"] || "Não informado"}`,
+          `Entrada: ${item["Entrada"] || "Não informado"}`,
+          `Etiqueta de Envio: ${item["Etiqueta de Envio"] || "Não informado"}`,
+          `Mapa de separação: ${item["Mapa de separação"] || "Não disponível"}`,
+          `DANFe: ${item["DANFe"] || "Não disponível"}`,
+          `Carta de correção: ${item["Carta de correção"] || "Não disponível"}`
+        ].join("\n");
+        copyToClipboard(dadosParaCopiar);
+        showCopyNotification("Dados copiados!");
+      };
+
+      document.getElementById("copyCnpjBtn").onclick = function() {
+        let cnpj = (item["CPF/CNPJ"] || "").replace(/\D/g, '');
+        if(cnpj.length === 14) {
+          copyToClipboard(cnpj);
+          showCopyNotification("CNPJ copiado!");
+        } else {
+          showCopyNotification("CNPJ inválido ou não encontrado.");
+        }
+      };
+      document.getElementById("copyMaquininhaBtn").onclick = function() {
+        let maq = (item["Maquininha ID"] || "").replace(/\D/g, '');
+        if(maq.length >= 15) {
+          let copyText = maq.slice(-15);
+          copyToClipboard(copyText);
+          showCopyNotification("Últimos 15 dígitos copiados!");
+        } else {
+          showCopyNotification("Maquininha ID inválido ou não contém 15 dígitos.");
+        }
+      };
+
+      document.getElementById("modalVisualizacao").style.display = "block";
+      document.getElementById("modalDetalhes").style.display = "none";
+      document.getElementById("modal").style.display = "flex";
+      
+      document.getElementById("editarBtn").onclick = function() {
+        editarInformacoes(item);
+      };
+    }
+
+    function fecharModal() {
+      document.getElementById("modal").style.display = "none";
+    }
+    document.getElementById("fecharModal").addEventListener("click", fecharModal);
+
+    function updateFileName(inputId, labelId) {
+      const input = document.getElementById(inputId);
+      const label = document.getElementById(labelId);
+      if (input.files.length > 0) {
+        label.innerHTML = `<span>${input.files[0].name}</span> <i class="fas fa-check-circle"></i>`;
+      } else {
+        label.innerHTML = '<span>Nenhum arquivo selecionado</span> <i class="fas fa-paperclip"></i>';
+      }
+    }
+
+    function editarInformacoes(item) {
+      document.getElementById("modalVisualizacao").style.display = "none";
+      document.getElementById("modalDetalhes").style.display = "block";
+      
+      const statusGOptions = [
+        "Verificar Todos",
+        "Aguardando Envio",
+        "Processando",
+        "Aguardando DANFe",
+        "Embalagem",
+        "Envio Realizado",
+        "Aguardando Mapa",
+        "Devolução",
+        "Em Posse do Márcio",
+        "Falha na Entrega",
+        "Cliente Buscou",
+        "Entregue ao Vendedor",
+        "Zyra Etiqueta",
+        "Conferir Etiqueta Zyra"
+      ].map(status => `<option value="${status}" ${item["Status G"] === status ? "selected" : ""}>${status}</option>`).join("");
+      
+      document.getElementById("modalDetalhes").innerHTML = `
+        <label for="statusGInput"><i class="fas fa-flag"></i> Status G:</label>
+        <select id="statusGInput">${statusGOptions}</select>
+        
+        <label for="observacaoInput"><i class="fas fa-comment"></i> Observação Geral:</label>
+        <textarea id="observacaoInput" rows="3">${item['Observação Geral'] || ''}</textarea>
+        
+        <label for="maquininhaInput"><i class="fas fa-mobile-alt"></i> Maquininha ID:</label>
+        <input type="text" id="maquininhaInput" value="${item["Maquininha ID"] || ''}" placeholder="Digite 24 dígitos">
+        <div id="maquininhaError" class="error-msg" style="display:none;">O Maquininha ID deve ter exatamente 24 dígitos.</div>
+        
+        <label for="chipInput"><i class="fas fa-sim-card"></i> Número do CHIP:</label>
+        <input type="text" id="chipInput" value="${item["CHIP"] || ''}" placeholder="Digite o número do CHIP">
+        
+        <label for="mapaInput"><i class="fas fa-map"></i> Mapa de separação:</label>
+        <div class="file-input-container">
+          <label class="file-label" id="mapaFileName">
+            <span>${item["Mapa de separação FileName"] || "Nenhum arquivo selecionado"}</span>
+            <i class="fas fa-paperclip"></i>
+          </label>
+          <input type="file" id="mapaInput" onchange="updateFileName('mapaInput', 'mapaFileName')">
+        </div>
+        
+        <label for="danfeInput"><i class="fas fa-file-pdf"></i> DANFe:</label>
+        <div class="file-input-container">
+          <label class="file-label" id="danfeFileName">
+            <span>${item["DANFe FileName"] || "Nenhum arquivo selecionado"}</span>
+            <i class="fas fa-paperclip"></i>
+          </label>
+          <input type="file" id="danfeInput" onchange="updateFileName('danfeInput', 'danfeFileName')">
+        </div>
+        
+        <label for="cartaInput"><i class="fas fa-file-word"></i> Carta de correção:</label>
+        <div class="file-input-container">
+          <label class="file-label" id="cartaFileName">
+            <span>${item["Carta de correção FileName"] || "Nenhum arquivo selecionado"}</span>
+            <i class="fas fa-paperclip"></i>
+          </label>
+          <input type="file" id="cartaInput" onchange="updateFileName('cartaInput', 'cartaFileName')">
+        </div>
+        
+        <label for="etiquetaInput"><i class="fas fa-tag"></i> Etiqueta de Envio:</label>
+        <div class="file-input-container">
+          <label class="file-label" id="etiquetaFileName">
+            <span>${item["Etiqueta de Envio FileName"] || "Nenhum arquivo selecionado"}</span>
+            <i class="fas fa-paperclip"></i>
+          </label>
+          <input type="file" id="etiquetaInput" onchange="updateFileName('etiquetaInput', 'etiquetaFileName')">
+        </div>
+        
+        <button id="salvarBtn"><i class="fas fa-save"></i> Salvar Alterações</button>
+        <button id="cancelarBtn"><i class="fas fa-times"></i> Cancelar</button>
+      `;
+      
+      document.getElementById("salvarBtn").onclick = async function() {
+        const maquininhaInput = document.getElementById("maquininhaInput");
+        const newStatus = document.getElementById("statusGInput").value;
+        const requiredStatuses = ["Embalagem", "Envio Realizado", "Devolução", "Em Posse do Márcio", "Cliente Buscou", "Entregue ao Vendedor"];
+        if(requiredStatuses.includes(newStatus)) {
+          const maquininhaValue = maquininhaInput.value.replace(/\D/g, '');
+          if(maquininhaValue.length !== 24) {
+            document.getElementById("maquininhaError").style.display = "block";
+            return;
+          } else {
+            document.getElementById("maquininhaError").style.display = "none";
+          }
+        } else {
+          document.getElementById("maquininhaError").style.display = "none";
+        }
+        
+        item["Status G"] = newStatus;
+        item["Observação Geral"] = document.getElementById("observacaoInput").value;
+        item["Maquininha ID"] = maquininhaInput.value;
+        item["CHIP"] = document.getElementById("chipInput").value;
+        
+        const mapaInput = document.getElementById("mapaInput");
+        const danfeInput = document.getElementById("danfeInput");
+        const cartaInput = document.getElementById("cartaInput");
+        const etiquetaInput = document.getElementById("etiquetaInput");
+        let anexouArquivo = false;
+        if (mapaInput.files && mapaInput.files[0]) {
+          anexouArquivo = true;
+          item["Mapa de separação"] = await readFileAsBase64(mapaInput.files[0]);
+          item["Mapa de separação FileName"] = mapaInput.files[0].name;
+        }
+        if (danfeInput.files && danfeInput.files[0]) {
+          anexouArquivo = true;
+          item["DANFe"] = await readFileAsBase64(danfeInput.files[0]);
+          item["DANFe FileName"] = danfeInput.files[0].name;
+        }
+        if (cartaInput.files && cartaInput.files[0]) {
+          anexouArquivo = true;
+          item["Carta de correção"] = await readFileAsBase64(cartaInput.files[0]);
+          item["Carta de correção FileName"] = cartaInput.files[0].name;
+        }
+        if (etiquetaInput.files && etiquetaInput.files[0]) {
+          anexouArquivo = true;
+          item["Etiqueta de Envio"] = await readFileAsBase64(etiquetaInput.files[0]);
+          item["Etiqueta de Envio FileName"] = etiquetaInput.files[0].name;
+        }
+        
+        if(anexouArquivo) {
+          showFullLoading();
+        }
+        atualizarCamposModificacao(item);
+        renderizarPipelines(data);
+        fecharModal();
+        await atualizarItem(item);
+        if(anexouArquivo) {
+          hideFullLoading();
+        }
+      };
+
+      document.getElementById("cancelarBtn").onclick = function() {
+         document.getElementById("modalDetalhes").style.display = "none";
+         document.getElementById("modalVisualizacao").style.display = "block";
+      };
+    }
+
+    document.getElementById("searchInput").addEventListener("input", aplicarFiltro);
+    document.getElementById("reloadBtn").addEventListener("click", async function() {
+      showFullLoading();
+      const novosDados = await buscarDados();
+      if(novosDados){
+        data = novosDados;
+        aplicarFiltro();
+      }
+      hideFullLoading();
+    });
+
+    showFullLoading();
+    buscarDados().then(response => {
+      if (response) {
+        data = response;
+        renderizarPipelines(data);
+      }
+      hideFullLoading();
+    });
+// Botão de voltar ao topo
+const btnTopo = document.getElementById("btnTopo");
+
+window.onscroll = function () {
+  if (document.body.scrollTop > 150 || document.documentElement.scrollTop > 150) {
+    btnTopo.style.display = "block";
+  } else {
+    btnTopo.style.display = "none";
+  }
+};
+
+btnTopo.addEventListener("click", function () {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+function toggleObservacao(container) {
+  const header = container.querySelector('.observacao-header');
+  const detalhes = container.querySelector('.observacao-detalhes');
+  const icone = container.querySelector('.seta-icon');
+
+  if (!detalhes || !icone) return;
+
+  if (detalhes.style.display === "none" || !detalhes.style.display) {
+    detalhes.style.display = "block";
+    icone.style.transform = "rotate(180deg)";
+  } else {
+    detalhes.style.display = "none";
+    icone.style.transform = "rotate(0deg)";
+  }
+}
+
+
+  </script>
+</body>
+</html>
